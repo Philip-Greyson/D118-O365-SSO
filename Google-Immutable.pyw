@@ -53,6 +53,7 @@ with open('ImmutableLog.txt', 'w') as log:
                     # print(user)
                     # print(user, file=log)
                     email = user.get('primaryEmail', [])  # get their email
+                    # print(user.get('customSchemas', {}).get('Office_365', {}), file=log)  # debug to see what fields are in this schema
                     currentImmutableID = user.get('customSchemas', {}).get('Office_365', {}).get('immutableID2')  # get the value currently in their immutable id field, return a blank dict at each time so that we dont error out if they have no values
                     if email is not None and currentImmutableID is not None:
                         # print(f'INFO: Email: {email} - Current ID: {currentImmutableID}')
@@ -68,7 +69,7 @@ with open('ImmutableLog.txt', 'w') as log:
         lines = source.readlines()  # read all the lines of the immutable ids file and store them in a list
         for line in lines:
             try:
-                if line[1] != '#':  # ignore lines that start with a pound sign
+                if line[0] != '#':  # ignore lines that start with a pound sign
                     bodyDict = {}
                     line = line.strip()  # strip out new line characters, whitespace, etc
                     split = line.split(',')
@@ -77,28 +78,23 @@ with open('ImmutableLog.txt', 'w') as log:
                     # print(f'User: {user} - ID: {immutableID}')
 
                     currentImmutableID = userDict.get(user)
-                    # print(f'INFO: User: {user} - ID: {immutableID} - Current: {currentImmutableID}')
+                    print(f'DBUG: User: {user} - ID: {immutableID} - Current: {currentImmutableID}')
+                    print(f'DBUG: User: {user} - ID: {immutableID} - Current: {currentImmutableID}', file=log)
                     if immutableID != currentImmutableID:
-                        print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}')
-                        print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}', file=log)
-                        bodyDict.update({'customSchemas' : {'Office_365' : {'immutableID2' : immutableID}}})
-                        try:
-                            # print(bodyDict)
-                            # print(bodyDict, file=log)
-                            outcome = service.users().update(userKey = user, body=bodyDict).execute()  # does the actual updating of the user profile
-                            # print(outcome)
-                            # print(outcome, file=log)
-                            if outcome:
-                                print('DBUG: Success')
-                                print('DBUG: Success', file=log)
-                        except Exception as er:
-                            if 'Resource Not Found: userKey' in str(er):
-                                print(f'WARN: cannot update {user} as they were not found in our domain')
-                                print(f'WARN: cannot update {user} as they were not found in our domain', file=log)
-                            elif 'Not Authorized to access this resource/api' in str(er):
-                                print(f'WARN: cannot update {user} as the email is not in our domain')
-                                print(f'WARN: cannot update {user} as the email is not in our domain', file=log)
-                            else:
+                        if userDict.get(user, 'DNE') != 'DNE':  # check to see if the user exists in the userdict
+                            print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}')
+                            print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}', file=log)
+                            bodyDict.update({'customSchemas' : {'Office_365' : {'immutableID2' : immutableID}}})
+                            try:
+                                # print(bodyDict)
+                                # print(bodyDict, file=log)
+                                outcome = service.users().update(userKey = user, body=bodyDict).execute()  # does the actual updating of the user profile
+                                # print(outcome)
+                                # print(outcome, file=log)
+                                if outcome:
+                                    print('DBUG: Success')
+                                    print('DBUG: Success', file=log)
+                            except Exception as er:
                                 print(f'ERROR: cannot update {user}: {er}')
                                 print(f'ERROR: cannot update {user}: {er}', file=log)
             except Exception as er:
