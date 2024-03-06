@@ -1,5 +1,17 @@
+"""Script to upload immutable IDs from file to custom attribute in Google Admin.
+
+https://github.com/Philip-Greyson/D118-O365-SSO
+
+Needs input from a .csv containing emails, immutable IDs generated from a PowerShell script.
+Finds all users in domain, stores their current immutable ID in a dictionary.
+Then goes through input file, comapres what ID should be to what it is currently.
+If there is a mismatch, will update Google profile to be correct.
+
+Needs the google-api-python-client, google-auth-httplib2 and the google-auth-oauthlib
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+"""
+
 # importing module
-import json
 import os  # needed for environement variable reading
 import os.path
 from datetime import *
@@ -13,6 +25,9 @@ from googleapiclient.discovery import build
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/admin.directory.user', 'https://www.googleapis.com/auth/admin.directory.group', 'https://www.googleapis.com/auth/admin.directory.group.member', 'https://www.googleapis.com/auth/apps.licensing']
 
+INPUT_FILE_NAME = 'Immutable-Ids.csv'
+CUSTOM_ATTRIBUTE_CATEGORY = "Office_365"
+CUSTOM_ATTRIBUTE_NAME = "immutableID2"
 
 creds = None
 # The file token.json stores the user's access and refresh tokens, and is
@@ -35,7 +50,7 @@ if not creds or not creds.valid:
 service = build('admin', 'directory_v1', credentials=creds)
 
 with open('ImmutableLog.txt', 'w') as log:
-    with open('Immutable-Ids.csv') as source:
+    with open(INPUT_FILE_NAME) as source:
         startTime = datetime.now()
         startTime = startTime.strftime('%H:%M:%S')
         print(f'Execution started at {startTime}')
@@ -54,7 +69,7 @@ with open('ImmutableLog.txt', 'w') as log:
                     # print(user, file=log)
                     email = user.get('primaryEmail', [])  # get their email
                     # print(user.get('customSchemas', {}).get('Office_365', {}), file=log)  # debug to see what fields are in this schema
-                    currentImmutableID = user.get('customSchemas', {}).get('Office_365', {}).get('immutableID2')  # get the value currently in their immutable id field, return a blank dict at each time so that we dont error out if they have no values
+                    currentImmutableID = user.get('customSchemas', {}).get(CUSTOM_ATTRIBUTE_CATEGORY, {}).get(CUSTOM_ATTRIBUTE_NAME)  # get the value currently in their immutable id field, return a blank dict at each time so that we dont error out if they have no values
                     if email is not None and currentImmutableID is not None:
                         # print(f'INFO: Email: {email} - Current ID: {currentImmutableID}')
                         # print(f'INFO: Email: {email} - Current ID: {currentImmutableID}', file=log)
@@ -84,7 +99,7 @@ with open('ImmutableLog.txt', 'w') as log:
                         if userDict.get(user, 'DNE') != 'DNE':  # check to see if the user exists in the userdict
                             print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}')
                             print(f'INFO: User {user} needs ID updated from {currentImmutableID} to {immutableID}', file=log)
-                            bodyDict.update({'customSchemas' : {'Office_365' : {'immutableID2' : immutableID}}})
+                            bodyDict.update({'customSchemas' : {CUSTOM_ATTRIBUTE_CATEGORY : {CUSTOM_ATTRIBUTE_NAME : immutableID}}})
                             try:
                                 # print(bodyDict)
                                 # print(bodyDict, file=log)
