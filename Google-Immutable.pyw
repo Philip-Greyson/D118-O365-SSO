@@ -69,16 +69,16 @@ with open('ImmutableLog.txt', 'w') as log:
                     # print(user, file=log)
                     email = user.get('primaryEmail', [])  # get their email
                     # print(user.get('customSchemas', {}).get('Office_365', {}), file=log)  # debug to see what fields are in this schema
-                    currentImmutableID = user.get('customSchemas', {}).get(CUSTOM_ATTRIBUTE_CATEGORY, {}).get(CUSTOM_ATTRIBUTE_NAME)  # get the value currently in their immutable id field, return a blank dict at each time so that we dont error out if they have no values
+                    currentImmutableID = user.get('customSchemas', {}).get(CUSTOM_ATTRIBUTE_CATEGORY, {}).get(CUSTOM_ATTRIBUTE_NAME, "")  # get the value currently in their immutable id field, return a blank dict at each time so that we dont error out if they have no values, empty string for final if it does not exist
                     if email is not None and currentImmutableID is not None:
-                        # print(f'INFO: Email: {email} - Current ID: {currentImmutableID}')
-                        # print(f'INFO: Email: {email} - Current ID: {currentImmutableID}', file=log)
+                        # print(f'DBUG: Adding user to userDict - Email: {email} - Current ID: {currentImmutableID}')
+                        # print(f'DBUG: Adding user to userDict - Email: {email} - Current ID: {currentImmutableID}', file=log)
                         userDict.update({email : currentImmutableID})  # add the email : id entry to the dict
                 except Exception as er:
                     print(f'ERROR on user {user}: {er}')
                     print(f'ERROR on user {user}: {er}', file=log)
 
-        # print(userDict)
+        # print(userDict, file=log)
 
         # go through each line in the input IDs file, check against their current id in their profile, and update the profile if neccessary
         lines = source.readlines()  # read all the lines of the immutable ids file and store them in a list
