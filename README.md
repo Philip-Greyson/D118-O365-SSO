@@ -17,7 +17,7 @@ The following Environment Variables must be set on the machine running the scrip
 
 These are fairly self explanatory, and just relate to the information of a Microsoft Entra registered application, created to use certificate based authentication. The client and tenant ID are found on the overview of the app inside of Entra, and the certificate thumbprint is on the certificates & secrets tab within the app after a certificate is uploaded.
 Of course, this app is also required to have the proper API permissions, specifically Graph - User.Read.All.
-The setup of the app is outside of the scope of this readme, but you can find decent guides online, [this](https://blog.admindroid.com/connect-to-microsoft-graph-powershell-using-certificate/) is one that I have used.
+The full setup of the app is outside of the scope of this readme, I have created a gist [here](https://gist.github.com/Philip-Greyson/7fd32026b7aa39b3a0eb45c92173b05b) that goes through all the steps required, or you can find other resources online.
 
 The following PowerShell module must be installed on the host machine:
 
