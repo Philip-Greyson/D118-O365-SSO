@@ -59,7 +59,12 @@ with open('ImmutableLog.txt', 'w') as log:
         # get all users in our domain and their immutable ID if they have one, stored into a dictionary for easier querying than one at a time api calls
         userDict = {}  # define dict that will contain sub-dict for each user containing their email and immutable id
         userToken = ''  # initialize blank userToken for use in looping query
+        count = 1  # variable for counting which query we are on
+        print('INFO: Finding all users in domain and their current immutable ID, this may take a while')
+        print('INFO: Finding all users in domain and their current immutable ID, this may take a while', file=log)
         while userToken is not None:  # do a while loop while we still have a next page of results
+            print(f'DBUG: Performing query loop #{count} for users and immutable IDs and storing them in users dict')  # have a simple output each loop so we can make sure its still running
+            count += 1  # increment count
             userResults = service.users().list(customer='my_customer', orderBy='email', projection='full', pageToken=userToken).execute()  # return all users in our domain
             userToken = userResults.get('nextPageToken')
             users = userResults.get('users', [])
